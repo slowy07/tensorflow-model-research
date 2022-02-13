@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -euo pipefail
 
 # Download latest configs from main TensorFlow repo.
