@@ -15,7 +15,7 @@ jobs:
       - name: install pylint 2.4.4
         run: |
           python -m pip install --upgrade pip
-          pip install pylint=2.4.4
+          pip install pylint==2.4.4
 
       - name: fetch main for diff
         run: git fetch origin main:main
