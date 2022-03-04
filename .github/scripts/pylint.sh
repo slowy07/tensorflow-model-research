@@ -42,4 +42,3 @@ get_py_files_to_check() {
 }
 
 num_cpus
-get_py_files_to_check
