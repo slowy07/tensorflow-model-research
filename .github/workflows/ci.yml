@@ -23,8 +23,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: fetch main to diff
-        run: git fetch origin main:main
-
       - name: Run test
         run: bash ./.github/scripts/pylint.sh --incremental
+        
