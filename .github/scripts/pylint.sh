@@ -22,4 +22,4 @@ get_changed_file_in_last_non_merge_commit() {
     git diff --name-only $(git merge-base main $(git branch --show-current))
 }
 
-num_cpus()
+num_cpus
