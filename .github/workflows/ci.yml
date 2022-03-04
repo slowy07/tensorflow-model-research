@@ -24,4 +24,4 @@ jobs:
           fetch-depth: 0
 
       - name: Run test
-        run: bash ./.github/scripts/pylint.sh
+        run: bash ./.github/scripts/pylint.sh --incremental
