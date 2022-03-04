@@ -41,4 +41,82 @@ get_py_files_to_check() {
   fi
 }
 
+do_pylint() {
+    if [[ $# == 1]] && [[ "$1" == "--incremental" ]]; then
+        PYTHON_SRC_FILES=$(get_py_files_to_check --incremental)
+    
+        if [[ -z "${PYTHON_SRC_FILES} "]]; then
+            echo "do_pylint will  not run due to --incremental flag and dua to the absence of python code chaanges in the last commit"
+            return 0
+        fi
+
+    elif [[ $# != 0 ]]; then
+        echo "invalid syntax for invoking do_pylint"
+        echo "usage: do_pylint [--incremental]"
+        return 1
+    else
+    PYTHON_SRC_FILES=$(get_py_files_to_check)
+    fi
+
+    if [[ -z ${PYTHON_SRC_FILES} ]]; then
+        echo "do_pylint found no Python files to check. Returning."
+        return 0
+    fi
+
+    PYLINT_BIN="python3.8 -m pylint"
+
+    echo ""
+    echo "check wheter pylint is available or not"
+    ${PYLINT_BIN} --version
+    if [[ $? -eq 0]]
+    then
+        echo "pylint available, procedding with pylint sanity check"
+    else
+        echo "pylint not available"
+        return 1
+    fi
+
+    PYLINTRC_FILE="${SCRIPT_DIR}/pylintrc"
+
+    if [[ ! -f "${PYLINTRC_FILE}"]]; then
+        die "ERROR: cannot find pylint rc file at ${PYLINTRC_FILE}"
+    fi
+
+    NUM_SRC_FILES=$(echo ${PYTHON_SRC_FILES} | wc -w)
+    NUM_CPUS=$(num_cpus)
+
+    echo "running pylint on ${NUM_SRC_FILES} files with ${NUM_CPUS} "\
+            "parallel jobs..."
+    
+    PYLINT_START_TIME=$(date +'%s')
+    OUTPUT_FILE="${mktemp}_pylint_output.log"
+    ERRORS_FILE="${mktemp}_pylint_errors.log"
+
+    rm -rf ${OUTPUT_FILE}
+    rm -rf ${ERRORS_FILE}
+
+    set +e
+
+    ${PYLINT_BIN} --rcfile="${PYLINTRC_FILE}" --output_format=parseable \
+        --jobs=${NUM_CPUS} ${PYTHON_SRC_FILES} | grep '\[[CEFW]' > ${OUTPUT_FILE}
+    PYLINT_END_TIME=$(date +'%s')
+
+    echo ""
+    echo "pylint test took $((PYLINT_END_TIME - PYLINT_START_TIME)) s"
+    
+    grep -E '(\[E|\[W0311|\[W0312|\[C0330|\[C0301|\[C0326|\[W0611|\[W0622)' ${OUTPUT_FILE} > ${ERRORS_FILE}
+    
+    N_FORBID_ERRORS=$(wc -l ${ERRORS_FILE} | cut -d' ' -f1)
+    set -e
+
+    echo ""
+    if [[ ${N_FORBID_ERRORS} != 0]]; then
+        echo "fail: found ${N_FORBID_ERRORS} errors in pylint check"
+        return 1
+    else
+        echo "pss: no errors"
+    fi
+}
+
 num_cpus
+do_pylint "$@"
