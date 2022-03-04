@@ -18,8 +18,26 @@ num_cpus() {
     echo ${N_CPUS}
 }
 
-get_changed_file_in_last_non_merge_commit() {
+get_changed_file_in_last_non_merge_git_commit() {
     git diff --name-only $(git merge-base main $(git branch --show-current))
 }
 
+get_py_files_to_check() {
+    if [[ "$1" == "--incrementl" ]]; then
+        CHANGED_PY_FILES = $(get_changed_file_in_last_non_merge_git_commit | gep '.*\py$')
+
+        PY_FILES=""
+        for PY_FILES in ${CHANGED_PY_FILES}; do
+            if [[ -f "{$PY_FILE}" ]]; then
+                PY_FILES="${PY_FILES} ${PY_FILE}"
+            fi
+        done
+
+        echo "${PY_FILES}"
+    else
+        find . -name '*.py'
+    fi
+}
+
 num_cpus
+get_py_files_to_check
