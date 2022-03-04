@@ -23,20 +23,22 @@ get_changed_file_in_last_non_merge_git_commit() {
 }
 
 get_py_files_to_check() {
-    if [[ "$1" == "--incrementl" ]]; then
-        CHANGED_PY_FILES = $(get_changed_file_in_last_non_merge_git_commit | gep '.*\py$')
+  if [[ "$1" == "--incremental" ]]; then
+    CHANGED_PY_FILES=$(get_changed_file_in_last_non_merge_git_commit | \
+                       grep '.*\.py$')
 
-        PY_FILES=""
-        for PY_FILES in ${CHANGED_PY_FILES}; do
-            if [[ -f "{$PY_FILE}" ]]; then
-                PY_FILES="${PY_FILES} ${PY_FILE}"
-            fi
-        done
+    # Do not include files removed in the last non-merge commit.
+    PY_FILES=""
+    for PY_FILE in ${CHANGED_PY_FILES}; do
+      if [[ -f "${PY_FILE}" ]]; then
+        PY_FILES="${PY_FILES} ${PY_FILE}"
+      fi
+    done
 
-        echo "${PY_FILES}"
-    else
-        find . -name '*.py'
-    fi
+    echo "${PY_FILES}"
+  else
+    find . -name '*.py'
+  fi
 }
 
 num_cpus
